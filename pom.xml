@@ -43,4 +43,15 @@
             </plugin>
         </plugins>
     </build>
+
+    <!--
+    https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry
+    -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub doda25-team2 Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/doda25-team2/lib-version</url>
+        </repository>
+    </distributionManagement>
 </project>
