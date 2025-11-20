@@ -44,7 +44,7 @@ jobs:
             BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           fi
           BRANCH_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-20 | sed 's/-$//')
-          TIMESTAMP=$(date -u +"%y%m%d-%H%M%S%z")
+          TIMESTAMP=$(date +"%y%m%d-%H%M%S")
           PRERELEASE_VERSION="${BASE_VERSION}-${BRANCH_NAME}-${TIMESTAMP}"
           echo "PRERELEASE_VERSION=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
