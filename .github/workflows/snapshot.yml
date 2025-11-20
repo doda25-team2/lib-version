@@ -1,0 +1,51 @@
+name: Snapshot Build
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Get current version
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+      
+      - name: Verify snap version
+        run: |
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+          if [[ ! $VERSION =~ -SNAPSHOT$ ]]; then
+            echo " Main branch doesnt have a SNAPSHOT version"
+            exit 1
+          fi
+          echo " snap: $VERSION"
+      
+      - name: Build and test
+        run: mvn clean verify
+      
+      - name: Deploy snap to gh packages
+        run: mvn deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
