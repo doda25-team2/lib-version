@@ -8,7 +8,7 @@
 
     <groupId>nl.tudelft.doda25.team2</groupId>
     <artifactId>lib-version</artifactId>
-    <version>1.0.3-TEST</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <name>lib-version</name>
