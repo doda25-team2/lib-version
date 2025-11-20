@@ -82,6 +82,10 @@ jobs:
           mvn -B deploy -DskipTests
       
       - name: Upload JAR to release
+        # This package is unmaintained and archived according to
+        # https://github.com/actions/upload-release-asset but I couldn't find a
+        # replacement. It still works, so just ignore the warning about the
+        # `set-output` command being depricated for now.
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -94,9 +98,9 @@ jobs:
       - name: Create and push version tag
         run: |
           VERSION="${{ steps.extract_version.outputs.version }}"
-          # Get the current branch name
-          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-          echo "Current branch: $BRANCH_NAME"
+          # Get the target branch from the release event
+          TARGET_COMMITISH="${{ github.event.release.target_commitish }}"
+          echo "Target branch/commit: $TARGET_COMMITISH"
           
           # Delete the old tag locally and remotely if it exists
           git tag -d "v$VERSION" 2>/dev/null || true
@@ -106,7 +110,7 @@ jobs:
           git tag -a "v$VERSION" -m "Release version $VERSION"
           
           # Push the commit and tag
-          git push origin HEAD:$BRANCH_NAME
+          git push origin HEAD:$TARGET_COMMITISH
           git push origin "v$VERSION"
       
       - name: Update release to point to new commit
