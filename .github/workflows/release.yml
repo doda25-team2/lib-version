@@ -94,6 +94,10 @@ jobs:
       - name: Create and push version tag
         run: |
           VERSION="${{ steps.extract_version.outputs.version }}"
+          # Get the current branch name
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          echo "Current branch: $BRANCH_NAME"
+          
           # Delete the old tag locally and remotely if it exists
           git tag -d "v$VERSION" 2>/dev/null || true
           git push origin :refs/tags/v$VERSION 2>/dev/null || true
@@ -102,7 +106,7 @@ jobs:
           git tag -a "v$VERSION" -m "Release version $VERSION"
           
           # Push the commit and tag
-          git push origin HEAD:main
+          git push origin HEAD:$BRANCH_NAME
           git push origin "v$VERSION"
       
       - name: Update release to point to new commit
