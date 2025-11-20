@@ -1,0 +1,66 @@
+name: Pre-release Build
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Extract pom.xml
+        id: extract_version
+        run: |
+          BASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
+          echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Base version: $BASE_VERSION"
+      
+      - name: create pre-release version
+        id: prerelease_version
+        run: |
+          BASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          else
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          fi
+          BRANCH_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | cut -c1-20 | sed 's/-$//')
+          TIMESTAMP=$(date -u +"%y%m%d-%H%M%S")
+          PRERELEASE_VERSION="${BASE_VERSION}-${BRANCH_NAME}-${TIMESTAMP}"
+          echo "PRERELEASE_VERSION=$PRERELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "Generated pre-release version: $PRERELEASE_VERSION"
+      
+      - name: pre-release version set
+        run: |
+          mvn versions:set -DnewVersion=${{ steps.prerelease_version.outputs.PRERELEASE_VERSION }}
+          mvn versions:commit
+      
+      - name: Build and test
+        run: mvn clean verify
+      
+      - name: Deploy pre-release to gh packages
+        run: mvn deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
