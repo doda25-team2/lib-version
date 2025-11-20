@@ -82,6 +82,10 @@ jobs:
           mvn -B deploy -DskipTests
       
       - name: Upload JAR to release
+        # This package is unmaintained and archived according to
+        # https://github.com/actions/upload-release-asset but I couldn't find a
+        # replacement. It still works, so just ignore the warning about the
+        # `set-output` command being depricated for now.
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
