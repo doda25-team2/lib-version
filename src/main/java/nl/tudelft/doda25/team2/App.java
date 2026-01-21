@@ -1,7 +1,7 @@
 package nl.tudelft.doda25.team2;
 
 /**
- * Hello world!
+ * Hello world! Simple application starts here:
  */
 public class App {
     public static void main(String[] args) {
